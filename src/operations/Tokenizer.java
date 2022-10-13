@@ -1,8 +1,8 @@
-package Desmosus.src.operations;
+package src.operations;
 import java.util.ArrayList;
 
-import Desmosus.src.objects.Token;
-import Desmosus.src.objects.TokenType;
+import src.objects.Token;
+import src.objects.TokenType;
 
 public class Tokenizer {
 

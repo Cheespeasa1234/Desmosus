@@ -1,7 +1,7 @@
-package Desmosus.src;
+package src;
 
-import Desmosus.src.objects.*;
-import Desmosus.src.operations.*;
+import src.objects.Token;
+import src.operations.Tokenizer;
 
 public class Main {
     public static void main(String[] args) {

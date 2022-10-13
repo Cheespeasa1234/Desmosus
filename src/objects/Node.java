@@ -1,6 +1,4 @@
-package objects;
-
-import Desmosus.src.objects.*;
+package src.objects;
 
 public class Node {
 

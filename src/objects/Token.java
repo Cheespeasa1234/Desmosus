@@ -1,4 +1,4 @@
-package Desmosus.src.objects;
+package src.objects;
 
 public class Token {
 
