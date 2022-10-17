@@ -1,125 +1,172 @@
 package src;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.math.BigDecimal;
 
 public class Desmosus {
 
-    public static void main(String[] args) {
-        Desmosus d = new Desmosus();
-        ArrayList<String> list = new ArrayList<String>();
-        list.add("a");
-        list.add("b");
-        list.add("c");
-        list.add("d");
-        list.add("e");
-        list = d.replace(2, 4, "N", list);
-        d.printArray("LIST: ", list);
+	private String[] tokens;
+	private int size;
 
-        d.run();
-    }
+	public Desmosus(String expression) {
+		this.tokens = this.addSpaces(expression).split("\\s");
+		this.size = this.tokens.length;
+	}
 
-    void run() {
+	private String addSpaces(String expression) {
+		return
+			expression
+			.replaceAll("(?<=[\\d])(?=[\\^*/+-])", " ")
+			.replaceAll("(?<=[\\^*/+-])(?=[\\d])", " ")
+			.replaceAll("(?<=[)])(?=[\\^*/+-])", " ")
+			.replaceAll("(?<=[\\^*/+-])(?=[(])", " ")
+			.replaceAll("(?<=[(])(?=[\\d])", " ")
+			.replaceAll("(?<=[\\d])(?=[)])", " ")
+			.replaceAll("(?<=[(])(?=[(])", " ")
+			.replaceAll("(?<=[)])(?=[)])", " ");
+	}
 
-        ArrayList<String> a = tokenize("3+2+3.3*231");
-        double solution = solve(a);
-        System.out.println("SOLVED: " + solution);
 
-    }
+	private void removeAToken(int index) {
+		while (index < (this.size - 1))
+			this.tokens[ index ] = this.tokens[ 1 + (index++) ];
 
-    void printArray(String pre, List<String> a) {
-        System.out.print(pre + "[ ");
-        a.forEach((n) -> {
-            System.out.print(n + ", ");
-        });
-        System.out.println("]");
-    }
+		this.size--;
+	}
 
-    double solve(ArrayList<String> tokens) {
 
-        for (int i = 0; i < tokens.size(); i++) {
-            String token = tokens.get(i);
-            if (token.equals("@O*")) {
-                double a = toDouble(tokens.get(i - 1));
-                double b = toDouble(tokens.get(i + 1));
-                double c = a * b;
-                tokens = replace(i, i + 2, "@N" + c, tokens);
-            } else if (token.equals("@O/")) {
-                double a = toDouble(tokens.get(i - 1));
-                double b = toDouble(tokens.get(i + 1));
-                double c = a / b;
-                tokens = replace(i, i + 2, "@N" + c, tokens);
-            }
-        }
-        for (int i = 0; i < tokens.size(); i++) {
-            String token = tokens.get(i);
-            if (token.equals("@O+")) {
-                double a = toDouble(tokens.get(i - 1));
-                double b = toDouble(tokens.get(i + 1));
-                double c = a + b;
-                tokens = replace(i, i + 2, "@N" + c, tokens);
-            } else if (token.equals("@O-")) {
-                double a = toDouble(tokens.get(i - 1));
-                double b = toDouble(tokens.get(i + 1));
-                double c = a - b;
-                tokens = replace(i, i + 2, "@N" + c, tokens);
-            }
-        }    
+	private void removeAlreadyUsedTokens(int index) {
+		for (byte i = 0; (i < 2); ++i)
+			this.removeAToken(index);
+	}
 
-        double r = toDouble(tokens.get(0));
-        if(tokens.size() > 1) {
-            r = solve(tokens);
-        }
-        return r;
 
-    }
+	private void addComputationValueOfTokens(int index, String value) {
+		this.tokens[ index ] = value;
+	}
 
-    ArrayList<String> tokenize(String equation) {
 
-        ArrayList<String> tokens = new ArrayList<String>();
-        String currentNumber = "@N";
-        String validDigits = "1234567890.";
+	private String parenthesis(int index) {
+		StringBuilder parenthesisValue = new StringBuilder();
 
-        for (int i = 0; i < equation.length(); i++) {
-            if (validDigits.indexOf(equation.charAt(i)) > -1) {
-                currentNumber += equation.charAt(i);
-            } else {
-                tokens.add(currentNumber);
-                currentNumber = "@N";
-                tokens.add("@O" + equation.charAt(i));
-            }
-        }
+		while (!(this.tokens[ index + 1 ].equals(")"))) {
+			if (this.tokens[ index + 1 ].equals("(")) {
+				parenthesisValue
+				.append(this.parenthesis(index + 1))
+				.append(" ");
 
-        if (!currentNumber.equals("")) {
-            tokens.add(currentNumber);
-        }
+				this.removeAToken(index + 1);
 
-        return tokens;
+			} else {
+				parenthesisValue
+				.append(this.tokens[ index + 1 ])
+				.append(" ");
 
-    }
+				this.removeAToken(index + 1);
+			}
+		}
+		this.removeAToken(index + 1);
 
-    String sanitizeString(String str) {
-        return str.replaceAll(" ", "");
-    }
+		this.addComputationValueOfTokens(
+			(index),
 
-    ArrayList<String> replace(int min, int max, String token, ArrayList<String> list) {
-        for(int i = min; i < max; i++) {
-            list.set(i, "");
-        }
-        for(int i = min; i < max; i++) {
-            list.remove("");
-        }
-        ArrayList<String> aux = new ArrayList<String>();
-        for(int i = 0; i < list.size(); i++) {
-            aux.add(list.get(i));
-            if(i == min - 1)
-                aux.add(token);
-        }
-        return aux;
-    }
+			new Desmosus(parenthesisValue.toString())
+			.equals()
+		);
 
-    double toDouble(String token) {
-        return Double.parseDouble(token.substring(2));
-    }
+		return this.tokens[ index ];
+	}
 
+
+	private void exponents(int index) {
+		String value = new BigDecimal(this.tokens[ index - 1 ])
+
+		.pow(Integer.parseInt(this.tokens[ index + 1 ]))
+		.toString();
+
+		this.addComputationValueOfTokens((index - 1), (value));
+		this.removeAlreadyUsedTokens(index);
+	}
+
+
+	private void multiplication(int index) {
+		String value = new BigDecimal(this.tokens[ index - 1 ])
+
+		.multiply(new BigDecimal(this.tokens[ index + 1 ]))
+		.toString();
+
+		this.addComputationValueOfTokens((index - 1), (value));
+		this.removeAlreadyUsedTokens(index);
+	}
+
+
+	private void division(int index) {
+		String value = new BigDecimal(this.tokens[ index - 1 ])
+
+		.divide(new BigDecimal(this.tokens[ index + 1 ]))
+		.toString();
+
+		this.addComputationValueOfTokens((index - 1), (value));
+		this.removeAlreadyUsedTokens(index);
+	}
+
+
+	private void addition(int index) {
+		String value = new BigDecimal(this.tokens[ index - 1 ])
+
+		.add(new BigDecimal(this.tokens[ index + 1 ]))
+		.toString();
+
+		this.addComputationValueOfTokens((index - 1), (value));
+		this.removeAlreadyUsedTokens(index);
+	}
+
+
+	private void subtraction(int index) {
+		String value = new BigDecimal(this.tokens[ index - 1 ])
+
+		.subtract(new BigDecimal(this.tokens[ index + 1 ]))
+		.toString();
+
+		this.addComputationValueOfTokens((index - 1), (value));
+		this.removeAlreadyUsedTokens(index);
+	}
+
+
+	private String orderOfOperation() {
+		if (this.size == 0)
+			return null;
+
+		if (this.size == 1)
+			return this.tokens[ 0 ];
+
+		for (int i = 0; (i < this.size); ++i)
+			if (this.tokens[ i ].equals("("))
+				this.parenthesis(i--);
+
+		for (int i = 0; (i < this.size); ++i)
+			if (this.tokens[ i ].equals("^"))
+				this.exponents(i--);
+
+		for (int i = 0; (i < this.size); ++i)
+			if (this.tokens[ i ].equals("*"))
+				this.multiplication(i--);
+
+		for (int i = 0; (i < this.size); ++i)
+			if (this.tokens[ i ].equals("/"))
+				this.division(i--);
+
+		for (int i = 0; (i < this.size); ++i)
+			if (this.tokens[ i ].equals("+"))
+				this.addition(i--);
+
+		for (int i = 0; (i < this.size); ++i)
+			if (this.tokens[ i ].equals("-"))
+				this.subtraction(i--);
+
+		return this.tokens[ 0 ];
+	}
+
+
+	public String equals() {
+		return new BigDecimal(this.orderOfOperation()).stripTrailingZeros().toString();
+	}
 }
