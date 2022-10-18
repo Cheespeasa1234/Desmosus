@@ -18,7 +18,7 @@ public class Program {
             } else {
                 tokens.add(curnum);
                 curnum = "";
-                tokens.add(eq.charAt(i));
+                tokens.add(eq.charAt(i)+"");
             }
         }
     }
